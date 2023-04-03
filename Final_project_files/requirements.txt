@@ -1,0 +1,10 @@
+yfinance
+pyspark
+bs4
+vaderSentiment
+prophet
+keras
+numpy
+pandas
+sklearn
+dateparser

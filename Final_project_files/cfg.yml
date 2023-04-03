@@ -1,0 +1,15 @@
+postgres:
+  driver: org.postgresql.Driver
+  password: green
+  url: jdbc:postgresql://localhost:5432/financials
+  user: adam
+spark:
+  spark_jars: spark.jars
+  spark_jars_path: /home/cis6180/wd/jars/postgresql-42.5.1.jar
+  spark_master: spark://cis6180.myguest.virtualbox.org:7077
+stream_config:
+    "host": "rtd.hpwren.ucsd.edu"
+    "port": 12028   
+mongo:
+    host: localhost
+    port: 27017
