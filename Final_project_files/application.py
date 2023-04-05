@@ -23,7 +23,7 @@ def gather_headlines(company_name, ticker):
     headlines = []
     dates = []
     for i in range(10, 300, 10):    # Running for-loop
-        info_url = "https://financialpost.com/search/?search_text="+company_name +"&date_range=-3650d&sort=desc&from="+str(i)
+        info_url = "https://financialpost.com/search/?search_text="+company_name +"&date_range=-365d&sort=desc&from="+str(i)
         page = requests.get(info_url, headers = headers)
         parser = bs(page.content, "html.parser" )
         date = parser.body.find_all('div', attrs={'class': 'article-card__meta-bottom'})
@@ -55,11 +55,12 @@ def analyze_sent(company, ticker):
     df = pd.DataFrame(df)
     df["score"] = (df['sentiment']*(df['headline_count']**2))
     df.drop(['sentiment', 'headline_count'], axis = 1, inplace = True)
+    print(df)
     return df
 
 
 def prophet_data(ticker, start_date):
-    delta = dt.timedelta(days = 300)
+    delta = dt.timedelta(days = 400)
     data = yf.download(ticker, (start_date - delta)).reset_index()
     data = data.rename(columns = {'Date':'ds', 'Open':'open', 'High':'high', 'Low':'low', 'Close':'close', 'Adj Close': 'y', 'Volume':'volume'})
     data = data.loc[:,['ds', 'y']]
@@ -70,8 +71,9 @@ def get_data(ticker, start_day):
   today = dt.date.today()
   final_model = Prophet(**Best_parameters)
   final_model.fit(prophet_data(ticker, start_day))
-  df = cross_validation(model=final_model, initial='200 days', horizon='10 days', period='10 days')
+  df = cross_validation(model=final_model, initial='380 days', horizon='100 days', period='100 days')
   df = df.set_index('ds').loc[str((today - dt.timedelta(days = 30))):today,]
+  print(df)
   return df
 
 
@@ -82,6 +84,7 @@ def get_financials(ticker, start):
     data['ticker'] = ticker
     data = data.reset_index()
     data = data.rename(columns = {'Date':'date', 'Open':'open', 'High':'high', 'Low':'low', 'Close':'close', 'Adj Close': 'adj_close', 'Volume':'volume'})
+    print(data)
     print('success!')
     return data
                        
@@ -161,6 +164,8 @@ def set_inputs():
         sentiment = analyze_sent(company_name, target_company).reset_index().rename(columns = {'ds':'date'}).set_index('date')
         training_data = financials.join(sentiment, how = 'left')
         training_data = training_data.join(prophet_df['yhat'])
+        print(training_data)
+        training_data.fillna(0.5, inplace = True)
     else:
         print('Error in input, please try again and select either backtest or predict')
     return training_data, prophet_df
